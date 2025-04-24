@@ -17,13 +17,12 @@
       padding: 1rem;
       text-align: center;
     }
-    .menu {
+    .menu, .login {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
+      justify-content: center;
       padding: 2rem;
     }
-    .item {
+    .item, .login-form {
       background: white;
       border-radius: 8px;
       padding: 1rem;
@@ -49,12 +48,30 @@
 <body>
   <header>
     <h1>Welcome to Canteen</h1>
-    <p>Scan the QR code to view and order from our menu</p>
+    <p>Please log in with your mobile number to access the menu</p>
   </header>
 
-  <section class="menu" id="menu"></section>
+  <!-- Login Form -->
+  <section class="login" id="loginSection">
+    <div class="login-form">
+      <h3>Login with Mobile Number</h3>
+      <input type="text" id="mobileNumber" placeholder="Enter your mobile number" maxlength="10" />
+      <button onclick="sendOTP()">Send OTP</button>
+    </div>
 
-  <div class="cart" onclick="viewCart()">🛒 View Cart (<span id="cart-count">0</span>)</div>
+    <!-- OTP Verification Form (hidden by default) -->
+    <div class="otp-form" id="otpSection" style="display:none;">
+      <h3>Enter OTP</h3>
+      <input type="text" id="otp" placeholder="Enter OTP" maxlength="6" />
+      <button onclick="verifyOTP()">Verify OTP</button>
+    </div>
+  </section>
+
+  <!-- Menu Section (hidden by default) -->
+  <section class="menu" id="menuSection" style="display:none;">
+    <div id="menu"></div>
+    <div class="cart" onclick="viewCart()">🛒 View Cart (<span id="cart-count">0</span>)</div>
+  </section>
 
   <footer>
     <p>&copy; 2025 Canteen Service</p>
@@ -76,30 +93,74 @@
 
     const menuDiv = document.getElementById('menu');
     const cartCount = document.getElementById('cart-count');
+    
+    let generatedOTP = null;
 
-    items.forEach((item, index) => {
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = `
-        <img src="${item.img}" alt="${item.name}" />
-        <h3>${item.name}</h3>
-        <p>₹${item.price}</p>
-        <button onclick="addToCart(${index})">Add to Cart</button>
-      `;
-      menuDiv.appendChild(div);
-    });
+    // Show Menu if User is Logged In
+    function showMenu() {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('menuSection').style.display = 'block';
+      
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <img src="${item.img}" alt="${item.name}" />
+          <h3>${item.name}</h3>
+          <p>₹${item.price}</p>
+          <button onclick="addToCart(${index})">Add to Cart</button>
+        `;
+        menuDiv.appendChild(div);
+      });
+    }
 
+    // Function to Send OTP (Simulated)
+    function sendOTP() {
+      const mobileNumber = document.getElementById('mobileNumber').value;
+
+      // Simple validation: Check if the mobile number is 10 digits
+      if (mobileNumber.length === 10) {
+        // Generate a simple OTP (for demo purposes)
+        generatedOTP = Math.floor(100000 + Math.random() * 900000);  // Random 6-digit number
+        console.log('Generated OTP: ' + generatedOTP);  // For debugging, remove in production
+        
+        // Simulate sending OTP
+        alert(`OTP has been sent to ${mobileNumber}. Please enter the OTP.`);
+        
+        // Show OTP input section
+        document.getElementById('otpSection').style.display = 'block';
+      } else {
+        alert('Please enter a valid 10-digit mobile number');
+      }
+    }
+
+    // Function to Verify OTP
+    function verifyOTP() {
+      const enteredOTP = document.getElementById('otp').value;
+      
+      if (enteredOTP == generatedOTP) {
+        alert('OTP Verified Successfully!');
+        localStorage.setItem('userMobile', document.getElementById('mobileNumber').value);
+        showMenu();
+      } else {
+        alert('Invalid OTP. Please try again.');
+      }
+    }
+
+    // Add Item to Cart
     function addToCart(index) {
       cart.push(items[index]);
       cartCount.textContent = cart.length;
       alert(`${items[index].name} added to cart!`);
     }
 
+    // View Cart
     function viewCart() {
       let summary = cart.map(item => `- ${item.name}: ₹${item.price}`).join('\n');
       let total = cart.reduce((sum, item) => sum + item.price, 0);
       alert(`Your Order:\n${summary}\n\nTotal: ₹${total}`);
     }
+
   </script>
 </body>
 </html>
